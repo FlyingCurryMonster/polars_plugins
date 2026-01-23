@@ -40,7 +40,17 @@ fn weighted_mean(inputs: &[Series]) -> PolarsResult<Series> {
     let mut sum_w = 0.0_f64;   // sum of weights
     let mut sum_wx = 0.0_f64;  // sum of (weight × value)
 
-    // Handle two cases: scalar weight (broadcast) or array of weights
+    // Handle two cases: 
+    // scalar weight broadcasts to array of weights
+    // vector weights stay the same
+
+    // compute the weighted sum
+    if weights_ca.len() == 1 {
+        let w_vec: Vec<Option<f64>> = weights_ca.into_iter().collect();
+    } else {
+        let w_vec: Vec<Option<f64>> = weights_ca.into_iter().collect();
+    }
+
     if weights_ca.len() == 1 {
         // Scalar weight case: broadcast the single weight across all values
         if let Some(w) = weights_ca.get(0) {

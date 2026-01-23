@@ -47,7 +47,7 @@ fn lowess(inputs: &[Series]) -> PolarsResult<Series> {
         None => {
             // Return nulls if processing failed
             let len = inputs[0].len();
-            Ok(Series::new("", vec![None::<f64>; len]))
+            Ok(Series::new("".into(), vec![None::<f64>; len]))
         }
     }
 }
@@ -114,8 +114,8 @@ fn process_group(y_series: &Series, x_series: &Series, frac_param: f64, it: usiz
         y_smooth[orig_idx] = y_smooth_sorted[idx];
     }
 
-    // Return as Series
-    Some(Series::new("", &y_smooth))
+    // Return as Series (transfer ownership to avoid copy)
+    Some(Series::new("".into(), y_smooth))
 }
 
 /// Core LOWESS algorithm implementation (OPTIMIZED)
