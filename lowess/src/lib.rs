@@ -1,6 +1,5 @@
 use polars::prelude::*;
 use pyo3_polars::derive::polars_expr;
-use rayon::prelude::*;
 
 // Types and methods imported from polars::prelude::* used in this plugin:
 // - Series: The fundamental Polars data structure (column of data)
