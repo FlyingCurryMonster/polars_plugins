@@ -4,10 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-polars = { version = "0.40.0", default-features = false, features = ["lazy"] }
-pyo3 = { version = "0.21.2", features = ["extension-module"] }
-pyo3-polars = { version = "0.14.0", features = ["derive"] }
-rayon = "1.10"
+polars = { workspace = true }
+pyo3 = { workspace = true }
+pyo3-polars = { workspace = true }
 
 [lib]
 crate-type = ["cdylib"]
