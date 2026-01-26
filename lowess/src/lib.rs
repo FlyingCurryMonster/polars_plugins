@@ -140,9 +140,9 @@ fn lowess_impl(y: &[f64], x: &[f64], frac: f64, it: usize) -> Vec<f64> {
     let k = ((frac * n as f64).ceil() as usize).max(2).min(n);
 
     // Pre-allocate output and working arrays
-    let mut y_smooth = vec![0.0; n];
-    let mut robustness_weights = vec![1.0; n];
-    let mut residuals = vec![0.0; n];
+    let mut y_smooth: Vec<f64> = vec![0.0; n];
+    let mut robustness_weights: Vec<f64> = vec![1.0; n];
+    let mut residuals: Vec<f64> = vec![0.0; n];
 
     // Main iteration loop: 0 = initial fit, 1..=it = robustness iterations
     for iter in 0..=it {
@@ -152,9 +152,9 @@ fn lowess_impl(y: &[f64], x: &[f64], frac: f64, it: usize) -> Vec<f64> {
             // For sorted data, we expand left/right from point i until we have k neighbors
 
             // Find initial window centered at i
-            let half_k = k / 2;
-            let mut left = i.saturating_sub(half_k);
-            let mut right = (i + half_k).min(n - 1);
+            let half_k: usize = k / 2;
+            let mut left: usize = i.saturating_sub(half_k);
+            let mut right: usize = (i + half_k).min(n - 1);
 
             // Expand to ensure we have at least k points
             if right - left + 1 < k {
@@ -170,8 +170,8 @@ fn lowess_impl(y: &[f64], x: &[f64], frac: f64, it: usize) -> Vec<f64> {
             // Now find exactly k nearest by comparing distances at boundaries
             // and shrinking the window from the farther side
             while right - left + 1 > k {
-                let left_dist = (x[left] - x[i]).abs();
-                let right_dist = (x[right] - x[i]).abs();
+                let left_dist: f64 = (x[left] - x[i]).abs();
+                let right_dist: f64 = (x[right] - x[i]).abs();
 
                 if left_dist > right_dist {
                     left += 1;
@@ -181,9 +181,9 @@ fn lowess_impl(y: &[f64], x: &[f64], frac: f64, it: usize) -> Vec<f64> {
             }
 
             // Compute h = max distance to any point in the k-neighborhood
-            let left_dist = (x[left] - x[i]).abs();
-            let right_dist = (x[right] - x[i]).abs();
-            let h = left_dist.max(right_dist);
+            let left_dist: f64 = (x[left] - x[i]).abs();
+            let right_dist: f64 = (x[right] - x[i]).abs();
+            let h: f64 = left_dist.max(right_dist);
 
             // Avoid division by zero if all points are identical
             if h == 0.0 {
@@ -192,17 +192,17 @@ fn lowess_impl(y: &[f64], x: &[f64], frac: f64, it: usize) -> Vec<f64> {
             }
 
             // Build local data and weights for regression from window [left, right]
-            let mut x_local = Vec::with_capacity(k);
-            let mut y_local = Vec::with_capacity(k);
-            let mut weights_local = Vec::with_capacity(k);
+            let mut x_local: Vec<f64> = Vec::with_capacity(k);
+            let mut y_local: Vec<f64> = Vec::with_capacity(k);
+            let mut weights_local: Vec<f64> = Vec::with_capacity(k);
 
             for j in left..=right {
-                let dist = (x[j] - x[i]).abs();
+                let dist: f64 = (x[j] - x[i]).abs();
                 // Tricube weight based on normalized distance
-                let u = dist / h;
-                let tricube_w = tricube_weight(u);
+                let u: f64 = dist / h;
+                let tricube_w: f64 = tricube_weight(u);
                 // Combined weight = tricube × robustness weight
-                let combined_w = tricube_w * robustness_weights[j];
+                let combined_w: f64 = tricube_w * robustness_weights[j];
 
                 if combined_w > 0.0 {
                     x_local.push(x[j]);
