@@ -58,10 +58,10 @@ fn lowess(inputs: &[Series]) -> PolarsResult<Series> {
 /// to ensure the output matches the input order (as scipy does).
 fn process_group(y_series: &Series, x_series: &Series, frac_param: f64, it: usize) -> Option<Series> {
     // Cast both series to Float64
-    let y_cast = y_series.cast(&DataType::Float64).ok()?;
-    let x_cast = x_series.cast(&DataType::Float64).ok()?;
-    let y_ca = y_cast.f64().ok()?;
-    let x_ca = x_cast.f64().ok()?;
+    let y_cast: Series = y_series.cast(&DataType::Float64).ok()?;
+    let x_cast: Series = x_series.cast(&DataType::Float64).ok()?;
+    let y_ca: &ChunkedArray<Float64Type> = y_cast.f64().ok()?;
+    let x_ca: &ChunkedArray<Float64Type> = x_cast.f64().ok()?;
 
     // Extract (x, y, original_index) tuples, filtering out nulls and non-finite values
     // Rust syntax: Vec::new() creates an empty vector with type inference
@@ -106,7 +106,7 @@ fn process_group(y_series: &Series, x_series: &Series, frac_param: f64, it: usiz
     };
 
     // Apply LOWESS algorithm
-    let y_smooth_sorted = lowess_impl(&y_sorted, &x_sorted, frac, it);
+    let y_smooth_sorted = lowess_impl_legacy(&y_sorted, &x_sorted, frac, it);
 
     // Unsort: map smoothed values back to original indices
     let mut y_smooth = vec![f64::NAN; y_ca.len()];
@@ -134,7 +134,7 @@ fn process_group(y_series: &Series, x_series: &Series, frac_param: f64, it: usiz
 /// - it: Number of robustness iterations
 ///
 /// Returns: Smoothed y values
-fn lowess_impl(y: &[f64], x: &[f64], frac: f64, it: usize) -> Vec<f64> {
+fn lowess_impl_legacy(y: &[f64], x: &[f64], frac: f64, it: usize) -> Vec<f64> {
     let n = x.len();
     // k = number of nearest neighbors to use
     let k = ((frac * n as f64).ceil() as usize).max(2).min(n);
@@ -385,7 +385,7 @@ mod tests {
         let x = vec![1.0, 2.0, 3.0, 4.0, 5.0];
         let y = vec![2.0, 4.0, 6.0, 8.0, 10.0];
 
-        let result = lowess_impl(&y, &x, 0.6, 2);
+        let result = lowess_impl_legacy(&y, &x, 0.6, 2);
 
         // Results should be close to original (within tolerance for smoothing)
         for (yi, ri) in y.iter().zip(result.iter()) {

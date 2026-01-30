@@ -2,7 +2,7 @@
 resolver = "2"
 
 members = [
-    "lowess",
+    "lowess_legacy", "lowess_plugin",
     "weighted_mean",
 ]
 
