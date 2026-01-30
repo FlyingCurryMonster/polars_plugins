@@ -3,10 +3,14 @@ name = "lowess_legacy"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["plugin"]
+plugin = []
+
 [dependencies]
 polars = { workspace = true }
 pyo3 = { workspace = true }
 pyo3-polars = { workspace = true }
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
