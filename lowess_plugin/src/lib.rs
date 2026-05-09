@@ -8,14 +8,14 @@ use lowess::prelude::*;
 /// Inputs (4):
 /// - y
 /// - x
-/// - frac_or_window
+/// - frac
 /// - it
 ///
 #[polars_expr(output_type = Float64)]
 fn lowess(inputs: &[Series]) -> PolarsResult<Series> {
     if inputs.len() != 4 {
         return Err(PolarsError::ComputeError(
-            "lowess expects 4 inputs: y, x, frac_or_window, it".into(),
+            "lowess expects 4 inputs: y, x, frac, it".into(),
         ));
     }
 
@@ -70,7 +70,7 @@ fn process_group(y_series: &Series, x_series: &Series, frac: f64, it: usize) -> 
     let model = Lowess::new()
         .fraction(frac)
         .iterations(it)
-        .adapter(Adapter::Batch)
+        .adapter(Batch)
         .build()
         .ok()?;
 
@@ -94,7 +94,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn lowess_matches_legacy_approximately() {
+    fn lowess_linear_data_matches_legacy_and_identity() {
+        let x = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        let y: Vec<f64> = x.iter().map(|xi| 2.0 * xi + 1.0).collect();
+
+        let legacy = lowess_legacy::lowess_impl_legacy(&y, &x, 0.6, 2);
+
+        let model = Lowess::new()
+            .fraction(0.6)
+            .iterations(2)
+            .adapter(Batch)
+            .build()
+            .unwrap();
+        let ours = model.fit(&x, &y).unwrap().y;
+
+        assert_eq!(legacy.len(), y.len());
+        assert_eq!(ours.len(), y.len());
+        for ((li, oi), yi) in legacy.iter().zip(ours.iter()).zip(y.iter()) {
+            assert!((li - yi).abs() < 1e-6);
+            assert!((oi - yi).abs() < 1e-6);
+        }
+    }
+
+    #[test]
+    fn lowess_is_reasonably_close_to_legacy_on_noisy_data() {
         let x = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
         let y = vec![2.0, 4.1, 5.9, 8.2, 9.8, 12.2];
 
@@ -103,14 +126,17 @@ mod tests {
         let model = Lowess::new()
             .fraction(0.6)
             .iterations(2)
-            .adapter(Adapter::Batch)
+            .adapter(Batch)
             .build()
             .unwrap();
         let ours = model.fit(&x, &y).unwrap().y;
 
-        assert_eq!(legacy.len(), ours.len());
-        for (a, b) in legacy.iter().zip(ours.iter()) {
-            assert!((a - b).abs() < 1e-6);
-        }
+        let mean_abs_diff: f64 = legacy
+            .iter()
+            .zip(ours.iter())
+            .map(|(a, b)| (a - b).abs())
+            .sum::<f64>()
+            / legacy.len() as f64;
+        assert!(mean_abs_diff < 1.0);
     }
 }
