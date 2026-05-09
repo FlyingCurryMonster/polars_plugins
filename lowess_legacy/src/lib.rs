@@ -1,4 +1,6 @@
+#[cfg(feature = "plugin")]
 use polars::prelude::*;
+#[cfg(feature = "plugin")]
 use pyo3_polars::derive::polars_expr;
 
 // Types and methods imported from polars::prelude::* used in this plugin:
@@ -27,6 +29,7 @@ use pyo3_polars::derive::polars_expr;
 /// - it: Number of robustness iterations (typically 2)
 ///
 /// The `#[polars_expr(...)]` macro registers this function as a Polars plugin.
+#[cfg(feature = "plugin")]
 #[polars_expr(output_type=Float64)]
 fn lowess(inputs: &[Series]) -> PolarsResult<Series> {
     // Validate we received exactly 4 inputs
@@ -56,6 +59,7 @@ fn lowess(inputs: &[Series]) -> PolarsResult<Series> {
 ///
 /// This function handles the data preparation, sorting, and result mapping
 /// to ensure the output matches the input order (as scipy does).
+#[cfg(feature = "plugin")]
 fn process_group(y_series: &Series, x_series: &Series, frac_param: f64, it: usize) -> Option<Series> {
     // Cast both series to Float64
     let y_cast: Series = y_series.cast(&DataType::Float64).ok()?;
@@ -134,7 +138,7 @@ fn process_group(y_series: &Series, x_series: &Series, frac_param: f64, it: usiz
 /// - it: Number of robustness iterations
 ///
 /// Returns: Smoothed y values
-fn lowess_impl_legacy(y: &[f64], x: &[f64], frac: f64, it: usize) -> Vec<f64> {
+pub fn lowess_impl_legacy(y: &[f64], x: &[f64], frac: f64, it: usize) -> Vec<f64> {
     let n = x.len();
     // k = number of nearest neighbors to use
     let k = ((frac * n as f64).ceil() as usize).max(2).min(n);
