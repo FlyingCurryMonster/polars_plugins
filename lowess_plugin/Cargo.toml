@@ -10,7 +10,7 @@ pyo3-polars = { workspace = true }
 lowess = "1.0.0"
 
 [dev-dependencies]
-lowess_legacy = { path = "../lowess_legacy" }
+lowess_legacy = { path = "../lowess_legacy", default-features = false }
 
 [lib]
 crate-type = ["cdylib"]
