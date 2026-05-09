@@ -4,6 +4,7 @@ resolver = "2"
 members = [
     "lowess_legacy", "lowess_plugin",
     "weighted_mean",
+    "weighted_quantile",
 ]
 
 [workspace.dependencies]
